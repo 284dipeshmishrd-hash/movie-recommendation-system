@@ -2,15 +2,11 @@ import os
 import pickle
 import requests
 import streamlit as st
-from dotenv import load_dotenv
 
 
-# ---------------- LOAD ENVIRONMENT VARIABLES ----------------
-
-load_dotenv()
-
-
-# ---------------- PAGE CONFIG ----------------
+# =========================================================
+# PAGE CONFIG
+# =========================================================
 
 st.set_page_config(
     page_title="Movie Recommendation System",
@@ -20,158 +16,206 @@ st.set_page_config(
 )
 
 
-# ---------------- CUSTOM CSS ----------------
+# =========================================================
+# TMDB API KEY
+# =========================================================
 
-st.markdown("""
-<style>
-
-/* Main Background */
-.stApp {
-    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-}
-
-/* Main Container */
-.block-container {
-    padding-top: 2rem;
-    padding-bottom: 2rem;
-    max-width: 1200px;
-}
-
-/* Main Title */
-.main-title {
-    text-align: center;
-    font-size: 52px;
-    font-weight: 800;
-    color: white;
-    margin-bottom: 5px;
-}
-
-/* Subtitle */
-.subtitle {
-    text-align: center;
-    font-size: 20px;
-    color: #d1d1d1;
-    margin-bottom: 35px;
-}
-
-/* Select Box Label */
-label[data-testid="stWidgetLabel"] p {
-    color: white !important;
-    font-size: 18px;
-    font-weight: bold;
-}
-
-/* Select Box */
-div[data-baseweb="select"] > div {
-    border-radius: 10px;
-}
-
-/* Button */
-.stButton > button {
-    width: 100%;
-    background: linear-gradient(90deg, #ff416c, #ff4b2b);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    padding: 12px;
-    font-size: 18px;
-    font-weight: bold;
-    transition: 0.3s;
-}
-
-.stButton > button:hover {
-    transform: scale(1.03);
-    background: linear-gradient(90deg, #ff4b2b, #ff416c);
-}
-
-/* Recommendation Title */
-.recommendation-title {
-    text-align: center;
-    color: white;
-    font-size: 32px;
-    font-weight: bold;
-    margin-top: 35px;
-    margin-bottom: 25px;
-}
-
-/* Movie Card */
-.movie-card {
-    background: rgba(255, 255, 255, 0.10);
-    padding: 15px;
-    border-radius: 18px;
-    text-align: center;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    transition: 0.3s;
-    min-height: 100%;
-}
-
-.movie-card:hover {
-    transform: translateY(-8px);
-    border: 1px solid #ff4b4b;
-}
-
-/* Movie Name */
-.movie-name {
-    color: white !important;
-    font-size: 20px;
-    font-weight: bold;
-    text-align: center;
-    min-height: 60px;
-    margin-top: 15px;
-}
-
-/* Footer */
-.footer {
-    text-align: center;
-    color: #90EE90;
-    margin-top: 40px;
-    font-size: 16px;
-    font-weight: bold;
-    background: transparent;
-    padding: 0;
-}
-
-</style>
-""", unsafe_allow_html=True)
+try:
+    TMDB_API_KEY = st.secrets.get("TMDB_API_KEY", "")
+except Exception:
+    TMDB_API_KEY = ""
 
 
-# ---------------- API KEY ----------------
+# =========================================================
+# CUSTOM CSS
+# =========================================================
 
-from dotenv import load_dotenv
-import os
+st.markdown(
+    """
+    <style>
 
-load_dotenv()
+    /* Main Background */
+    .stApp {
+        background: linear-gradient(
+            135deg,
+            #0f0c29,
+            #302b63,
+            #24243e
+        );
+    }
 
-TMDB_API_KEY = os.getenv("TMDB_API_KEY")
+    /* Main Container */
+    .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+        max-width: 1200px;
+    }
+
+    /* Main Title */
+    .main-title {
+        text-align: center;
+        font-size: 52px;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 5px;
+    }
+
+    /* Subtitle */
+    .subtitle {
+        text-align: center;
+        font-size: 20px;
+        color: #d1d1d1;
+        margin-bottom: 35px;
+    }
+
+    /* Select Box Label */
+    label[data-testid="stWidgetLabel"] p {
+        color: white !important;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    /* Select Box */
+    div[data-baseweb="select"] > div {
+        border-radius: 10px;
+    }
+
+    /* Button */
+    .stButton > button {
+        width: 100%;
+        background: linear-gradient(
+            90deg,
+            #ff416c,
+            #ff4b2b
+        );
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 12px;
+        font-size: 18px;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    .stButton > button:hover {
+        transform: scale(1.03);
+        background: linear-gradient(
+            90deg,
+            #ff4b2b,
+            #ff416c
+        );
+    }
+
+    /* Recommendation Title */
+    .recommendation-title {
+        text-align: center;
+        color: white;
+        font-size: 32px;
+        font-weight: bold;
+        margin-top: 35px;
+        margin-bottom: 25px;
+    }
+
+    /* Movie Card */
+    .movie-card {
+        background: rgba(255, 255, 255, 0.10);
+        padding: 15px;
+        border-radius: 18px;
+        text-align: center;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        transition: 0.3s;
+        min-height: 100%;
+    }
+
+    .movie-card:hover {
+        transform: translateY(-8px);
+        border: 1px solid #ff4b4b;
+    }
+
+    /* Movie Name */
+    .movie-name {
+        color: white !important;
+        font-size: 20px;
+        font-weight: bold;
+        text-align: center;
+        min-height: 60px;
+        margin-top: 15px;
+    }
+
+    /* Footer */
+    .footer {
+        text-align: center;
+        color: #90EE90;
+        margin-top: 40px;
+        font-size: 16px;
+        font-weight: bold;
+        background: transparent;
+        padding: 0;
+    }
+
+    /* API Warning */
+    .api-warning {
+        background: rgba(255, 193, 7, 0.15);
+        border: 1px solid rgba(255, 193, 7, 0.5);
+        border-radius: 10px;
+        padding: 12px;
+        color: #fff3cd;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 
-# ---------------- LOAD MODEL ----------------
+# =========================================================
+# LOAD MODEL
+# =========================================================
 
 @st.cache_resource
 def load_models():
 
-    movies = pickle.load(
-        open("model/movie_list.pkl", "rb")
-    )
+    movies_path = "model/movie_list.pkl"
+    similarity_path = "model/similarity.pkl"
 
-    similarity = pickle.load(
-        open("model/similarity.pkl", "rb")
-    )
+    if not os.path.exists(movies_path):
+        raise FileNotFoundError(
+            f"Missing file: {movies_path}"
+        )
+
+    if not os.path.exists(similarity_path):
+        raise FileNotFoundError(
+            f"Missing file: {similarity_path}"
+        )
+
+    with open(movies_path, "rb") as file:
+        movies = pickle.load(file)
+
+    with open(similarity_path, "rb") as file:
+        similarity = pickle.load(file)
 
     return movies, similarity
 
 
-# ---------------- FETCH MOVIE POSTER ----------------
+# =========================================================
+# FETCH MOVIE POSTER
+# =========================================================
 
 def fetch_poster(movie_id):
 
+    # If API key is not configured
     if not TMDB_API_KEY:
         return None
 
     try:
 
-        url = f"https://api.themoviedb.org/3/movie/{movie_id}"
+        url = (
+            "https://api.themoviedb.org/3/movie/"
+            f"{movie_id}"
+        )
 
         response = requests.get(
             url,
@@ -198,17 +242,29 @@ def fetch_poster(movie_id):
     except requests.exceptions.RequestException:
         return None
 
+    except Exception:
+        return None
+
     return None
 
 
-# ---------------- RECOMMEND MOVIES ----------------
+# =========================================================
+# RECOMMEND MOVIES
+# =========================================================
 
 def recommend(movie, movies, similarity):
 
-    index = movies[
+    # Find selected movie
+    movie_indices = movies[
         movies["title"] == movie
-    ].index[0]
+    ].index
 
+    if len(movie_indices) == 0:
+        return []
+
+    index = movie_indices[0]
+
+    # Calculate similarity
     distances = sorted(
         list(enumerate(similarity[index])),
         reverse=True,
@@ -217,23 +273,34 @@ def recommend(movie, movies, similarity):
 
     recommended_movies = []
 
-    for i in distances[1:6]:
+    # Get top 5 recommendations
+    for item in distances[1:6]:
 
-        movie_id = movies.iloc[i[0]].movie_id
+        movie_index = item[0]
 
-        movie_name = movies.iloc[i[0]].title
+        movie_id = movies.iloc[
+            movie_index
+        ]["movie_id"]
+
+        movie_name = movies.iloc[
+            movie_index
+        ]["title"]
 
         poster = fetch_poster(movie_id)
 
-        recommended_movies.append({
-            "name": movie_name,
-            "poster": poster
-        })
+        recommended_movies.append(
+            {
+                "name": movie_name,
+                "poster": poster
+            }
+        )
 
     return recommended_movies
 
 
-# ---------------- MAIN APP ----------------
+# =========================================================
+# MAIN TITLE
+# =========================================================
 
 st.markdown(
     """
@@ -254,33 +321,54 @@ st.markdown(
 )
 
 
-# ---------------- LOAD APP ----------------
+# =========================================================
+# LOAD APPLICATION
+# =========================================================
 
 try:
 
+    # Load movies and similarity model
     movies, similarity = load_models()
 
-    # Movie Selection
+    # =====================================================
+    # API KEY MESSAGE
+    # =====================================================
+
+    if not TMDB_API_KEY:
+
+        st.markdown(
+            """
+            <div class="api-warning">
+                ⚠️ TMDB API key is not configured.
+                Movie recommendations will work,
+                but posters may not appear.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    # =====================================================
+    # MOVIE SELECT BOX
+    # =====================================================
 
     selected_movie = st.selectbox(
-
         "🔍 Search or Select Your Favorite Movie",
-
         movies["title"].values,
-
         index=None,
-
         placeholder="Choose a movie..."
     )
 
     st.write("")
 
-    # Recommendation Button
+    # =====================================================
+    # RECOMMENDATION BUTTON
+    # =====================================================
 
     if st.button(
         "✨ Get Movie Recommendations"
     ):
 
+        # Check movie selection
         if selected_movie is None:
 
             st.warning(
@@ -289,7 +377,9 @@ try:
 
         else:
 
-            # Loading Animation
+            # =================================================
+            # LOADING
+            # =================================================
 
             with st.spinner(
                 "🎬 Finding the best movies for you..."
@@ -301,57 +391,106 @@ try:
                     similarity
                 )
 
-            # Recommendation Heading
+            # =================================================
+            # DISPLAY RECOMMENDATIONS
+            # =================================================
 
-            st.markdown(
-                """
-                <div class="recommendation-title">
-                    🔥 Recommended For You
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+            if recommendations:
 
-            # Create 5 Columns
+                st.markdown(
+                    """
+                    <div class="recommendation-title">
+                        🔥 Recommended For You
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
 
-            cols = st.columns(5)
+                # Create 5 columns
+                cols = st.columns(5)
 
-            # Display Movies
+                # Display each recommendation
+                for col, movie in zip(
+                    cols,
+                    recommendations
+                ):
 
-            for col, movie in zip(
-                cols,
-                recommendations
-            ):
+                    with col:
 
-                with col:
-
-                    # Movie Poster
-
-                    if movie["poster"]:
-
-                        st.image(
-                            movie["poster"],
-                            use_container_width=True
+                        # Movie card
+                        st.markdown(
+                            '<div class="movie-card">',
+                            unsafe_allow_html=True
                         )
 
-                    else:
+                        # -------------------------------------
+                        # Poster
+                        # -------------------------------------
 
-                        st.image(
-                            "https://via.placeholder.com/500x750.png?text=No+Poster",
-                            use_container_width=True
+                        if movie["poster"]:
+
+                            st.image(
+                                movie["poster"],
+                                use_container_width=True
+                            )
+
+                        else:
+
+                            # Simple placeholder
+                            st.markdown(
+                                """
+                                <div style="
+                                    height: 300px;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    background: rgba(
+                                        255,255,255,0.08
+                                    );
+                                    border-radius: 12px;
+                                    color: white;
+                                    font-size: 18px;
+                                ">
+                                    🎬<br>
+                                    Poster Not Available
+                                </div>
+                                """,
+                                unsafe_allow_html=True
+                            )
+
+                        # -------------------------------------
+                        # Movie Name
+                        # -------------------------------------
+
+                        movie_name = movie["name"]
+
+                        st.markdown(
+                            f"""
+                            <div class="movie-name">
+                                {movie_name}
+                            </div>
+                            """,
+                            unsafe_allow_html=True
                         )
 
-                    # Movie Name
+                        # Close card
+                        st.markdown(
+                            "</div>",
+                            unsafe_allow_html=True
+                        )
 
-                    st.markdown(
-                        f'<div class="movie-name">{movie["name"]}</div>',
-                        unsafe_allow_html=True
-                    )
+            else:
+
+                st.warning(
+                    "⚠️ No recommendations found."
+                )
 
 
-# ---------------- ERROR HANDLING ----------------
+# =========================================================
+# FILE ERROR
+# =========================================================
 
-except FileNotFoundError:
+except FileNotFoundError as e:
 
     st.error(
         "❌ Model files not found!"
@@ -359,7 +498,8 @@ except FileNotFoundError:
 
     st.info(
         """
-        Please make sure these files exist:
+        Please make sure your GitHub repository
+        contains these files:
 
         model/movie_list.pkl
 
@@ -367,13 +507,31 @@ except FileNotFoundError:
         """
     )
 
+    st.code(str(e))
 
-# ---------------- FOOTER ----------------
+
+# =========================================================
+# GENERAL ERROR
+# =========================================================
+
+except Exception as e:
+
+    st.error(
+        "❌ Something went wrong while running the app."
+    )
+
+    st.code(str(e))
+
+
+# =========================================================
+# FOOTER
+# =========================================================
 
 st.markdown(
     """
     <div class="footer">
-        🎬 Movie Recommendation System &nbsp;
+        🎬 Movie Recommendation System
+        &nbsp; | &nbsp;
         Developed with ❤️ by Dipesh Kr Mishra
     </div>
     """,
