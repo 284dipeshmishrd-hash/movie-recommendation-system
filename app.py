@@ -2,8 +2,16 @@ import os
 import pickle
 import requests
 import streamlit as st
+from dotenv import load_dotenv
+
+
+# ---------------- LOAD ENVIRONMENT VARIABLES ----------------
+
+load_dotenv()
+
 
 # ---------------- PAGE CONFIG ----------------
+
 st.set_page_config(
     page_title="Movie Recommendation System",
     page_icon="🎬",
@@ -11,7 +19,9 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+
 # ---------------- CUSTOM CSS ----------------
+
 st.markdown("""
 <style>
 
@@ -27,8 +37,7 @@ st.markdown("""
     max-width: 1200px;
 }
 
-/* ---------------- MAIN TITLE ---------------- */
-
+/* Main Title */
 .main-title {
     text-align: center;
     font-size: 52px;
@@ -37,8 +46,7 @@ st.markdown("""
     margin-bottom: 5px;
 }
 
-/* ---------------- SUBTITLE ---------------- */
-
+/* Subtitle */
 .subtitle {
     text-align: center;
     font-size: 20px;
@@ -46,22 +54,19 @@ st.markdown("""
     margin-bottom: 35px;
 }
 
-/* ---------------- SELECT BOX LABEL ---------------- */
-
+/* Select Box Label */
 label[data-testid="stWidgetLabel"] p {
     color: white !important;
     font-size: 18px;
     font-weight: bold;
 }
 
-/* ---------------- SELECT BOX ---------------- */
-
+/* Select Box */
 div[data-baseweb="select"] > div {
     border-radius: 10px;
 }
 
-/* ---------------- BUTTON ---------------- */
-
+/* Button */
 .stButton > button {
     width: 100%;
     background: linear-gradient(90deg, #ff416c, #ff4b2b);
@@ -79,8 +84,7 @@ div[data-baseweb="select"] > div {
     background: linear-gradient(90deg, #ff4b2b, #ff416c);
 }
 
-/* ---------------- RECOMMENDATION TITLE ---------------- */
-
+/* Recommendation Title */
 .recommendation-title {
     text-align: center;
     color: white;
@@ -90,8 +94,7 @@ div[data-baseweb="select"] > div {
     margin-bottom: 25px;
 }
 
-/* ---------------- MOVIE CARD ---------------- */
-
+/* Movie Card */
 .movie-card {
     background: rgba(255, 255, 255, 0.10);
     padding: 15px;
@@ -108,8 +111,7 @@ div[data-baseweb="select"] > div {
     border: 1px solid #ff4b4b;
 }
 
-/* ---------------- MOVIE NAME ---------------- */
-
+/* Movie Name */
 .movie-name {
     color: white !important;
     font-size: 20px;
@@ -119,28 +121,29 @@ div[data-baseweb="select"] > div {
     margin-top: 15px;
 }
 
-/* ---------------- FOOTER ---------------- */
-
+/* Footer */
 .footer {
     text-align: center;
-    color: #90EE90; /* Light Green */
+    color: #90EE90;
     margin-top: 40px;
     font-size: 16px;
     font-weight: bold;
     background: transparent;
     padding: 0;
 }
+
 </style>
 """, unsafe_allow_html=True)
 
 
 # ---------------- API KEY ----------------
 
-try:
-    TMDB_API_KEY = st.secrets["TMDB_API_KEY"]
+from dotenv import load_dotenv
+import os
 
-except Exception:
-    TMDB_API_KEY = os.getenv("TMDB_API_KEY", "")
+load_dotenv()
+
+TMDB_API_KEY = os.getenv("TMDB_API_KEY")
 
 
 # ---------------- LOAD MODEL ----------------
@@ -192,8 +195,7 @@ def fetch_poster(movie_id):
                 + poster_path
             )
 
-    except Exception:
-
+    except requests.exceptions.RequestException:
         return None
 
     return None
@@ -258,7 +260,6 @@ try:
 
     movies, similarity = load_models()
 
-
     # Movie Selection
 
     selected_movie = st.selectbox(
@@ -272,9 +273,7 @@ try:
         placeholder="Choose a movie..."
     )
 
-
     st.write("")
-
 
     # Recommendation Button
 
@@ -282,16 +281,13 @@ try:
         "✨ Get Movie Recommendations"
     ):
 
-
         if selected_movie is None:
 
             st.warning(
                 "⚠️ Please select a movie first!"
             )
 
-
         else:
-
 
             # Loading Animation
 
@@ -300,35 +296,25 @@ try:
             ):
 
                 recommendations = recommend(
-
                     selected_movie,
-
                     movies,
-
                     similarity
-
                 )
-
 
             # Recommendation Heading
 
             st.markdown(
-
                 """
                 <div class="recommendation-title">
                     🔥 Recommended For You
                 </div>
                 """,
-
                 unsafe_allow_html=True
-
             )
-
 
             # Create 5 Columns
 
             cols = st.columns(5)
-
 
             # Display Movies
 
@@ -339,60 +325,27 @@ try:
 
                 with col:
 
-
-                    # Movie Card Start
-
-                    st.markdown(
-
-                        '<div class="movie-card">',
-
-                        unsafe_allow_html=True
-
-                    )
-
-
                     # Movie Poster
 
                     if movie["poster"]:
 
                         st.image(
-
                             movie["poster"],
-
                             use_container_width=True
-
                         )
 
                     else:
 
                         st.image(
-
                             "https://via.placeholder.com/500x750.png?text=No+Poster",
-
                             use_container_width=True
-
                         )
-
 
                     # Movie Name
 
                     st.markdown(
-
                         f'<div class="movie-name">{movie["name"]}</div>',
-
                         unsafe_allow_html=True
-
-                    )
-
-
-                    # Movie Card End
-
-                    st.markdown(
-
-                        '</div>',
-
-                        unsafe_allow_html=True
-
                     )
 
 
@@ -406,15 +359,11 @@ except FileNotFoundError:
 
     st.info(
         """
-        Please make sure:
+        Please make sure these files exist:
 
         model/movie_list.pkl
 
-        and
-
         model/similarity.pkl
-
-        are available.
         """
     )
 
@@ -424,7 +373,8 @@ except FileNotFoundError:
 st.markdown(
     """
     <div class="footer">
-        🎬 Movie Recommendation System &nbsp; Developed with ❤️ by Dipesh Kr Mishra
+        🎬 Movie Recommendation System &nbsp;
+        Developed with ❤️ by Dipesh Kr Mishra
     </div>
     """,
     unsafe_allow_html=True

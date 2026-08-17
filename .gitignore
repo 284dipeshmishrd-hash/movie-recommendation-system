@@ -1,2 +1,4 @@
 ﻿model/similarity.pkl
 .streamlit/secrets.toml
+
+.env
